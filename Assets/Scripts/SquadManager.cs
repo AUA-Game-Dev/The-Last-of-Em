@@ -10,6 +10,9 @@ public class SquadManager : MonoBehaviour
     public float unitSpacing = 0.9f;
     public float repositionSpeed = 12f;
 
+    public float wallLeft = -4f; 
+    public float wallRight = 4f;  
+
     private List<GameObject> units = new List<GameObject>();
     private CameraFollow camFollow;
 
@@ -88,22 +91,50 @@ public class SquadManager : MonoBehaviour
         UnitCount = units.Count;
     }
 
+    Vector3 GetHexOffset(int slotIndex)
+    {
+        if (slotIndex == 0)
+        {
+            return Vector3.zero;
+        }
+
+        int ring = 1;
+        int slotsUsed = 1; 
+        while (slotsUsed + 6 * ring <= slotIndex)
+        {
+            slotsUsed = slotsUsed + 6 * ring;
+            ring = ring + 1;
+        }
+
+        int posInRing = slotIndex - slotsUsed;
+        int slotsInRing = 6 * ring;
+
+        float angle = (360f / slotsInRing) * posInRing;
+        float rad = angle * Mathf.Deg2Rad;
+
+        float x = Mathf.Cos(rad) * ring * unitSpacing;
+        float z = Mathf.Sin(rad) * ring * unitSpacing;
+
+        return new Vector3(x, 0f, z);
+    }
+
     void RepositionUnits()
     {
-        int count = units.Count;
-        float totalWidth = (count - 1) * unitSpacing;
-
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < units.Count; i++)
         {
             if (units[i] == null) continue;
 
-            float targetX = transform.position.x - totalWidth / 2f + i * unitSpacing;
-            float targetY = transform.position.y;
-            float targetZ = transform.position.z;
+            Vector3 hexOffset = GetHexOffset(i);
+            float idealX = transform.position.x + hexOffset.x;
+            float idealZ = transform.position.z + hexOffset.z;
 
-            Vector3 targetPos = new Vector3(targetX, targetY, targetZ);
+            float clampedX = Mathf.Clamp(idealX, wallLeft, wallRight);
 
-            units[i].transform.position = Vector3.Lerp(units[i].transform.position, targetPos, repositionSpeed * Time.deltaTime);
+            units[i].transform.position = Vector3.Lerp(
+                units[i].transform.position,
+                new Vector3(clampedX, transform.position.y, idealZ),
+                repositionSpeed * Time.deltaTime
+            );
         }
     }
 }

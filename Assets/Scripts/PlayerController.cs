@@ -29,12 +29,9 @@ public class PlayerController : MonoBehaviour
 
     void HandleMobileInput()
     {
-        // Touch input (mobile)
         if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
-
-            // Don't move if the player is touching a UI button
             bool touchingUI = UnityEngine.EventSystems.EventSystem.current != null &&
                               UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject(touch.fingerId);
             if (touchingUI) return;
@@ -66,7 +63,6 @@ public class PlayerController : MonoBehaviour
                 isDragging = false;
             }
         }
-        // Mouse input (editor testing)
         else if (Input.GetMouseButton(0))
         {
             bool clickingUI = UnityEngine.EventSystems.EventSystem.current != null &&
@@ -87,7 +83,6 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // Keyboard input (editor testing)
         float h = Input.GetAxis("Horizontal");
         if (h > 0.01f || h < -0.01f)
         {
