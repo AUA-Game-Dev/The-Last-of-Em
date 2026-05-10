@@ -36,37 +36,26 @@ public class EnemySpawner : MonoBehaviour
     {
         if (!GameManager.Instance.IsPlaying) return;
 
-        waveTimer = waveTimer + Time.deltaTime;
+        waveTimer += Time.deltaTime;
         if (waveTimer >= waveDuration)
         {
             waveTimer = 0f;
-            currentWave = currentWave + 1;
-
-            currentInterval = spawnInterval - (currentWave - 1) * intervalDecrement;
-            if (currentInterval < minInterval)
-            {
-                currentInterval = minInterval;
-            }
-
+            currentWave++;
+            currentInterval = Mathf.Max(spawnInterval - (currentWave - 1) * intervalDecrement, minInterval);
             GameManager.Instance.OnWaveChanged(currentWave);
         }
 
-        spawnTimer = spawnTimer - Time.deltaTime;
+        spawnTimer -= Time.deltaTime;
         if (spawnTimer <= 0f)
         {
             int count = 1 + currentWave / 3;
             for (int i = 0; i < count; i++)
-            {
                 SpawnEnemy();
-            }
             spawnTimer = currentInterval;
         }
 
-        //Temporary goal: survive 3 waves
         if (currentWave >= 4)
-        {
-            manager.RestartGame();
-        }
+            manager.TriggerGameOver();
     }
 
     void SpawnEnemy()
@@ -75,39 +64,31 @@ public class EnemySpawner : MonoBehaviour
 
         GameObject prefab = PickRandomEnemy();
 
-        float playerX = 0f;
-        if (SquadManager.Instance != null)
-        {
-            playerX = SquadManager.Instance.transform.position.x;
-        }
-
         float x = Random.Range(-spawnXHalfWidth, spawnXHalfWidth);
-        Vector3 spawnPos = new Vector3(playerX + x, 0f, spawnZ);
 
-        Instantiate(prefab, spawnPos, Quaternion.identity);
+        // Spawn at y=0, rotated 180 on Y so the model faces toward the player
+        Vector3 spawnPos = new Vector3(x, -1f, spawnZ);
+        Quaternion spawnRot = Quaternion.Euler(0f, 180f, 0f);
+
+        Instantiate(prefab, spawnPos, spawnRot);
     }
 
     GameObject PickRandomEnemy()
     {
         float totalWeight = 0f;
         for (int i = 0; i < enemyTypes.Length; i++)
-        {
-            totalWeight = totalWeight + enemyTypes[i].weight;
-        }
+            totalWeight += enemyTypes[i].weight;
 
         float roll = Random.Range(0f, totalWeight);
-
         float runningTotal = 0f;
+
         for (int i = 0; i < enemyTypes.Length; i++)
         {
-            runningTotal = runningTotal + enemyTypes[i].weight;
+            runningTotal += enemyTypes[i].weight;
             if (roll <= runningTotal)
-            {
                 return enemyTypes[i].prefab;
-            }
         }
 
-        //Fallback because I'm getting an error
         return enemyTypes[0].prefab;
     }
 }

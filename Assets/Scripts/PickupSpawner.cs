@@ -39,17 +39,14 @@ public class PickupSpawner : MonoBehaviour
     {
         if (pickups == null || pickups.Length == 0) return;
 
-        // Add up all the weights
         float totalWeight = 0f;
         for (int i = 0; i < pickups.Length; i++)
         {
             totalWeight = totalWeight + pickups[i].weight;
         }
 
-        // Pick a random number between 0 and total weight
         float roll = Random.Range(0f, totalWeight);
 
-        // Walk through the list to find which pickup was picked
         float runningTotal = 0f;
         GameObject prefab = pickups[0].prefab;
         for (int i = 0; i < pickups.Length; i++)
@@ -61,8 +58,6 @@ public class PickupSpawner : MonoBehaviour
                 break;
             }
         }
-
-        // Spawn it near the player
         float playerX = 0f;
         if (SquadManager.Instance != null)
         {
@@ -72,7 +67,7 @@ public class PickupSpawner : MonoBehaviour
         float x = playerX + Random.Range(-spawnXHalfWidth, spawnXHalfWidth);
         Vector3 spawnPos = new Vector3(x, 0.5f, spawnZ);
 
-        Instantiate(prefab, spawnPos, Quaternion.identity);
+        Instantiate(prefab, spawnPos, Quaternion.Euler(0f, 90f, 0f));
     }
 
     void ResetTimer()
